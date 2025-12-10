@@ -1,8 +1,9 @@
+// api/chat/route.js
 export const config = { runtime: "edge" };
 
 export default async function handler(req) {
   try {
-    // QUICK GET helper: /api/chat?message=hello
+    // SAFE: handle GET immediately (no req.json())
     if (req.method === "GET") {
       const url = new URL(req.url);
       const m = url.searchParams.get("message");
@@ -45,17 +46,9 @@ export default async function handler(req) {
       });
     }
 
-    // === CALL GEMINI (example) ===
-    // Keep this part as your working client. If you used @google/generative-ai,
-    // ensure it's in package.json and Vercel installed it. Example placeholder:
-    // const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    // const gen = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // const model = gen.getGenerativeModel({ model: "gemini-1.5-flash" });
-    // const result = await model.generateContent(userMessage);
-    // const replyText = result.response?.text?.() ?? "No reply";
-
-    // For now return a placeholder (so we can confirm parsing works)
-    const replyText = "placeholder reply (replace with Gemini call)";
+    // TEMPORARY placeholder reply — confirms handler works.
+    // Replace this block later with your Gemini client call.
+    const replyText = `Received: ${userMessage}`;
 
     return new Response(JSON.stringify({ reply: replyText }), {
       status: 200,
@@ -69,4 +62,3 @@ export default async function handler(req) {
     });
   }
 }
-
