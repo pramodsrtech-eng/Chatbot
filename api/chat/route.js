@@ -2,65 +2,71 @@ export const config = { runtime: "edge" };
 
 export default async function handler(req) {
   try {
-    // Allow quick debug via GET?message=hello in browser (optional)
+    // QUICK GET helper: /api/chat?message=hello
     if (req.method === "GET") {
       const url = new URL(req.url);
-      const msg = url.searchParams.get("message");
-      if (msg) {
-        return new Response(JSON.stringify({ reply: "Quick test mode: message received: " + msg }), {
+      const m = url.searchParams.get("message");
+      if (m) {
+        return new Response(JSON.stringify({ reply: `Quick test mode: ${m}` }), {
           status: 200,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: "Only POST requests allowed. Use POST with JSON {\"message\":\"...\"}." }), {
+      return new Response(JSON.stringify({ error: "Only POST allowed. Use POST with JSON {\"message\":\"...\"}" }), {
         status: 405,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
+    // Only accept POST from here on
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Only POST requests allowed." }), {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    let body = null;
+    // Safely parse JSON with try/catch
+    let body;
     try {
       body = await req.json();
     } catch (e) {
-      return new Response(JSON.stringify({ error: "Invalid or empty JSON body. Send { \"message\": \"...\" }" }), {
+      return new Response(JSON.stringify({ error: "Invalid or empty JSON body" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    const userMessage = (body && body.message) ? body.message : "";
-    const model = body.model || "gemini-1.5-flash";
-
+    const userMessage = body?.message || "";
     if (!userMessage) {
-      return new Response(JSON.stringify({ error: "Empty message. Provide { \"message\": \"...\" } in the POST body." }), {
+      return new Response(JSON.stringify({ error: "Empty message" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    // call Gemini (example) — adjust to the client you used earlier
-    // Keep your existing genAI code here. Example placeholder:
-    const genAI = new (await import("@google/generative-ai")).GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const modelObj = genAI.getGenerativeModel({ model });
-    const result = await modelObj.generateContent(userMessage);
-    const text = result.response?.text?.() ?? "";
+    // === CALL GEMINI (example) ===
+    // Keep this part as your working client. If you used @google/generative-ai,
+    // ensure it's in package.json and Vercel installed it. Example placeholder:
+    // const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    // const gen = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // const model = gen.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // const result = await model.generateContent(userMessage);
+    // const replyText = result.response?.text?.() ?? "No reply";
 
-    return new Response(JSON.stringify({ reply: text }), {
+    // For now return a placeholder (so we can confirm parsing works)
+    const replyText = "placeholder reply (replace with Gemini call)";
+
+    return new Response(JSON.stringify({ reply: replyText }), {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message || String(err) }), {
+    return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
+
